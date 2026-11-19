@@ -214,9 +214,11 @@ export default function App() {
         <label className="login-remember"><AnimatedCheckbox checked={remember} disabled={!!busy || !bridge} onChange={e => setRemember(e.target.checked)} /> Lembrar acesso neste computador</label>
         <button className="button primary full" disabled={!!busy || !bridge || !status?.protocol}>Entrar na Havan <ArrowRight size={18} /></button>
       </form>
-      <div className="privacy-note"><ShieldCheck size={16} /><span>Se marcar a opção, o CNPJ e a senha ficam no cofre do Linux. Não use em computador compartilhado.</span></div>
+      <div className="privacy-note"><ShieldCheck size={16} /><span>Se marcar a opção, o CNPJ e a senha ficam no cofre do sistema. Não use em computador compartilhado.</span></div>
       {!bridge && <div className="desktop-note">Abra o aplicativo instalado para conectar sua conta.</div>}
-      {bridge && status && !status.protocol && <div className="desktop-note">Importe o arquivo local de compatibilidade para habilitar o login.<button className="text-button" disabled={!!busy} onClick={() => act('Importando configuração', async () => {
+      {bridge && status && !status.protocol && <div className="desktop-note">{status.protocolVaultUnavailable
+        ? 'Desbloqueie o cofre do sistema e reabra a Vinqueta para preparar a integração de volumes.'
+        : 'Importe o arquivo local de compatibilidade para habilitar o login.'}<button className="text-button" disabled={!!busy} onClick={() => act('Importando configuração', async () => {
         if (await unwrap(bridge.importConfig())) setStatus(await unwrap(bridge.status()));
       })}>Importar configuração local</button></div>}
       <footer className="login-credit">{authorCredit}</footer>
@@ -284,7 +286,7 @@ export default function App() {
           {jobs.length ? <div className="table-scroll"><table><thead><tr><th>Origem</th><th>Data</th><th>Etiquetas</th><th>Perfil</th><th><span className="sr-only">Ação</span></th></tr></thead><tbody>{jobs.map(job => <tr key={job.id}><td><strong>{job.label}</strong><small className="product-code">{job.files.length} arquivo(s)</small></td><td>{date(job.date)}</td><td className="mono">{number(job.count)}</td><td><span className="status-tag"><Check size={12} /> {job.kind === 'price' ? 'Preço · 33×22' : 'Volume · −30 dots'}</span></td><td><button className="text-button" disabled={!!busy} onClick={() => act('Abrindo lote', () => openJob(job))}>Abrir lote <ArrowRight size={15} /></button></td></tr>)}</tbody></table></div> : <Empty icon={<FolderOpen size={28} />} title="Nenhum lote salvo" text="Importe volumes originais ou gere etiquetas de preço. Cada lote usa seu próprio perfil de impressão." />}
           {status?.storage && <p className="storage-note">Pasta local dos lotes e originais: <code>{status.storage}</code></p>}
         </section>}
-        <footer className="app-footer">{authorCredit}<span>{page === 'settings' ? 'Preferências locais' : page === 'prices' ? 'Preço 33 × 22 mm' : 'Volume 100 × 150 mm'} <span className="footer-divider">·</span> v0.6.1</span></footer>
+        <footer className="app-footer">{authorCredit}<span>{page === 'settings' ? 'Preferências locais' : page === 'prices' ? 'Preço 33 × 22 mm' : 'Volume 100 × 150 mm'} <span className="footer-divider">·</span> v{__APP_VERSION__}</span></footer>
       </main>
     </div>
     {preview && <div ref={backdropRef} className="modal-backdrop" onClickCapture={motion.guardInteraction} onClick={e => { if (e.target === e.currentTarget) closePreview(); }}>
@@ -296,10 +298,10 @@ export default function App() {
         {preview.job.kind === 'price' && <div className="price-file-summary">{preview.job.files.map(f => <p key={f.name}><strong>{f.product}</strong><span>{f.ean} · R$ {f.price} · {number(f.count)} etiquetas</span>{f.source && <span>XML do pedido {f.source.order} · versão {f.source.version} · produto {f.source.productCode}, variação {f.source.variationCode}</span>}</p>)}</div>}
         <div className="code-label"><FileCode2 size={16} /> ZPL processado · primeiro arquivo · até 16.000 caracteres</div><pre className="code-preview">{preview.text}</pre>
         <p className="print-warning">{preview.job.kind === 'price' ? 'Papel 33×22 em três colunas, não 10×15. ZPL com 880×200 dots por fileira, mantendo o modelo original. Confira os preços, a resolução e a calibração da impressora. Teste uma fileira antes de imprimir o lote.' : 'Confirme a resolução da impressora e teste uma etiqueta. O ajuste de posição não converte DPI nem garante sozinho os limites físicos de 10×15.'}</p>
-        <div className="print-config"><label htmlFor="printer">Fila ZPL no Linux</label><div><select id="printer" value={printer} disabled={!!busy} onChange={e => setPrinter(e.target.value)}><option value="">Selecione uma impressora</option>{printers.map(p => <option key={p}>{p}</option>)}</select><button className="button secondary" disabled={!!busy} onClick={() => act('Buscando impressoras', async () => { if (bridge) { const found = await unwrap(bridge.printers()); setPrinters(found); if (!found.length) setNotice({ text: 'Nenhuma fila CUPS encontrada. Configure uma fila que aceite ZPL raw no Linux.', error: true }); } })}>Buscar filas</button></div></div>
+        <div className="print-config"><label htmlFor="printer">Fila de impressão ZPL</label><div><select id="printer" value={printer} disabled={!!busy} onChange={e => setPrinter(e.target.value)}><option value="">Selecione uma impressora</option>{printers.map(p => <option key={p}>{p}</option>)}</select><button className="button secondary" disabled={!!busy} onClick={() => act('Buscando impressoras', async () => { if (bridge) { const found = await unwrap(bridge.printers()); setPrinters(found); if (!found.length) setNotice({ text: 'Nenhuma fila encontrada. Configure uma impressora que aceite ZPL raw.', error: true }); } })}>Buscar filas</button></div></div>
         <div className="modal-actions"><button className="button secondary" disabled={!!busy} onClick={() => act('Exportando lote', async () => {
           if (bridge && await unwrap(bridge.exportJob(preview.job.id))) setNotice({ text: preview.job.kind === 'price' ? 'Etiquetas de preço salvas.' : 'Arquivo ajustado salvo.', error: false });
-        })}><ArrowDownToLine size={17} /> {preview.job.kind === 'price' ? 'Exportar preços' : 'Exportar ajustado'}</button><button className="button primary" disabled={!!busy || !printer} onClick={() => act('Enviando ao CUPS', async () => {
+        })}><ArrowDownToLine size={17} /> {preview.job.kind === 'price' ? 'Exportar preços' : 'Exportar ajustado'}</button><button className="button primary" disabled={!!busy || !printer} onClick={() => act('Enviando à fila de impressão', async () => {
           if (bridge) { const receipt = await unwrap(bridge.print(preview.job.id, printer)); if (receipt) setNotice({ text: `Lote enviado à fila. ${receipt}`, error: false }); }
         })}><Printer size={17} /> Enviar à impressora</button></div>
       </section>

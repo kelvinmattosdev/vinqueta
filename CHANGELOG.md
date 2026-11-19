@@ -3,6 +3,12 @@
 Notas de cada versão estável da Vinqueta. A aplicação também usa este arquivo
 para exibir o histórico quando não é possível consultar o GitHub.
 
+## 1.0.0
+
+- Primeira distribuição estável para Linux x86-64.
+- A configuração inicial dos pacotes oficiais é guardada no cofre do sistema, sem importação manual.
+- Preparação dos instaladores e integração nativa com os cofres e filas de impressão de Windows e macOS, ainda em validação.
+
 ## 0.6.1
 
 ### Novidades

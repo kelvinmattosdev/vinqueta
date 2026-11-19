@@ -1,9 +1,12 @@
 {
   "name": "vinqueta",
-  "version": "0.6.1",
+  "version": "1.0.0",
   "private": true,
   "description": "Central de etiquetas de preço e volume para fornecedores",
-  "author": { "name": "Kelvin Mattos", "url": "https://github.com/kelvinmattosdev" },
+  "author": {
+    "name": "Kelvin Mattos",
+    "url": "https://github.com/kelvinmattosdev"
+  },
   "homepage": "https://github.com/kelvinmattosdev",
   "desktopName": "vinqueta.desktop",
   "license": "MIT",
@@ -21,8 +24,10 @@
     "test:ui": "node scripts/check-ui.mjs",
     "test:theme": "node scripts/check-theme.mjs",
     "build:icon": "node scripts/build-icon.mjs",
-    "pack:linux": "npm run build && npm run build:icon && electron-builder --linux dir",
-    "dist:linux": "npm run build && npm run build:icon && electron-builder --linux deb AppImage",
+    "pack:linux": "npm run build && npm run build:icon && node scripts/package-desktop.mjs linux-dir",
+    "dist:linux": "npm run build && npm run build:icon && node scripts/package-desktop.mjs linux",
+    "dist:win": "npm run build && npm run build:icon && node scripts/package-desktop.mjs win",
+    "dist:mac": "npm run build && npm run build:icon && node scripts/package-desktop.mjs mac",
     "install:local": "npm run pack:linux && node scripts/install-local.mjs"
   },
   "build": {
@@ -43,6 +48,17 @@
       "!**/.local/**"
     ],
     "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png",
+      "artifactName": "vinqueta-${version}-windows-${arch}.${ext}"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "artifactName": "vinqueta-${version}-macos-${arch}.${ext}"
+    },
     "linux": {
       "maintainer": "Kelvin Mattos",
       "syncDesktopName": true,
@@ -60,6 +76,10 @@
       }
     },
     "deb": {
+      "depends": [
+        "libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils",
+        "libatspi2.0-0", "libuuid1", "libsecret-1-0", "gjs", "gir1.2-secret-1", "cups-client"
+      ],
       "fpm": [
         "README.md=/usr/share/doc/vinqueta/README.md",
         "SECURITY.md=/usr/share/doc/vinqueta/SECURITY.md",
@@ -70,6 +90,7 @@
   "dependencies": {
     "@fontsource/chivo": "^5.2.8",
     "@fontsource/chivo-mono": "^5.2.7",
+    "@napi-rs/keyring": "2.1.2",
     "cheerio": "^1.2.0",
     "fast-xml-parser": "^5.12.1",
     "jszip": "^3.10.1",

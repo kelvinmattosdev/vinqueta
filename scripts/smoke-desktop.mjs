@@ -6,6 +6,7 @@ import { sample } from '../tests/fixture.mjs';
 import { integrationBytes, gridHtml } from '../tests/integration-fixture.mjs';
 
 const tmp = await mkdtemp('/tmp/opencode/vinqueta-desktop-');
+const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 let desktop;
 async function mockHavan() {
   await desktop.evaluate(({ app }, { grid, xml, zpl }) => {
@@ -66,7 +67,8 @@ async function login(page) {
 const launchOptions = process.env.VINQUETA_EXECUTABLE ? {
   executablePath: resolve(process.env.VINQUETA_EXECUTABLE),
   args: ['--disable-gpu', `--user-data-dir=${tmp}/profile`],
-} : { args: [resolve('.'), '--disable-gpu', `--user-data-dir=${tmp}/profile`] };
+ } : { args: [resolve('.'), '--disable-gpu', `--user-data-dir=${tmp}/profile`] };
+launchOptions.env = { ...process.env, DBUS_SESSION_BUS_ADDRESS: `unix:path=${tmp}/dbus-indisponivel` };
 try {
   const output = join(tmp, 'exportado.txt');
   // O teste instalado não depende de uma configuração real de fornecedor.
@@ -87,18 +89,9 @@ try {
   await desktop.evaluate(({ shell }) => { shell.openExternal = async url => { globalThis.vinquetaTestExternal = url; }; });
   await author.click();
   assert.equal(await desktop.evaluate(() => globalThis.vinquetaTestExternal), 'https://github.com/kelvinmattosdev');
-  let status = await page.evaluate(() => window.vinqueta.status());
+  const status = await page.evaluate(() => window.vinqueta.status());
   assert.equal(status.ok, true);
   assert(status.data.storage.startsWith(tmp), 'O teste nunca deve usar a pasta real de lotes');
-  if (!status.data.protocol) {
-    const protocolFile = resolve('.local/protocol.json');
-    await desktop.evaluate(({ dialog }, file) => {
-      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] });
-    }, protocolFile);
-    await page.getByRole('button', { name: 'Importar configuração local' }).click();
-    await page.waitForFunction(() => !document.querySelector('.progress'));
-    status = await page.evaluate(() => window.vinqueta.status());
-  }
   assert.equal(status.data.protocol, true);
   await mockHavan();
   assert.equal(await page.getByRole('navigation').count(), 0);
@@ -384,12 +377,12 @@ try {
   const log = restarted.getByRole('dialog', { name: 'O que mudou na Vinqueta' });
   await log.waitFor();
   await log.getByRole('heading', { name: 'Versão 0.5.0', exact: true }).waitFor();
-  await log.getByRole('heading', { name: 'Versão 0.6.1', exact: true }).waitFor();
+  await log.getByRole('heading', { name: `Versão ${version}`, exact: true }).waitFor();
   await log.getByText('Nota de segurança fictícia.', { exact: true }).waitFor();
   assert.equal(await log.getByRole('heading', { name: 'Versão 1.5.0', exact: true }).count(), 0);
   await log.getByRole('button', { name: 'Continuar', exact: true }).click();
   await log.waitFor({ state: 'detached' });
-  assert.equal(await readFile(join(tmp, 'profile', 'updates-seen'), 'utf8'), '0.6.1\n');
+  assert.equal(await readFile(join(tmp, 'profile', 'updates-seen'), 'utf8'), `${version}\n`);
   await restarted.getByRole('button', { name: 'Atualizar para 1.5.0' }).click();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(await desktop.evaluate(() => globalThis.testOpenedRelease), 'https://github.com/kelvinmattosdev/vinqueta/releases/tag/v1.5.0');
@@ -401,7 +394,7 @@ try {
   await desktop.evaluate(() => { globalThis.testReleases = undefined; });
   await restarted.reload();
   await restarted.getByRole('button', { name: /Ver produtos/ }).waitFor();
-  await restarted.getByText('Atualizado 0.6.1', { exact: true }).waitFor();
+  await restarted.getByText(`Atualizado ${version}`, { exact: true }).waitFor();
   assert.equal(await log.count(), 0);
   assert.equal((await desktop.evaluate(() => globalThis.testCounts)).apiLogins, 2);
   assert.equal(await restarted.getByLabel('Senha', { exact: true }).count(), 0);

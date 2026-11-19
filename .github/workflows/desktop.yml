@@ -1,0 +1,52 @@
+name: Validar pacotes desktop
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2022
+            target: win
+            name: windows-x64
+          - runner: macos-15
+            target: mac
+            name: macos-arm64
+          - runner: macos-15-intel
+            target: mac
+            name: macos-x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run dist:${{ matrix.target }}
+      - name: Abrir pacote no Windows e testar o cofre
+        if: runner.os == 'Windows'
+        run: node scripts/smoke-platform-package.mjs release/win-unpacked/Vinqueta.exe
+      - name: Abrir pacote no macOS e testar o cofre
+        if: runner.os == 'macOS'
+        run: |
+          set -eu
+          executable="$(find release -type f -path '*/Vinqueta.app/Contents/MacOS/Vinqueta' -print -quit)"
+          test -n "$executable"
+          node scripts/smoke-platform-package.mjs "$executable"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: teste-sem-configuracao-${{ matrix.name }}
+          path: |
+            release/*.exe
+            release/*.dmg
+          if-no-files-found: error

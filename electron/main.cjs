@@ -1,9 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, session, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
-const exec = promisify(execFile);
 app.setName('vinqueta');
 if (process.platform === 'linux') {
   app.setDesktopName('vinqueta.desktop');
@@ -33,14 +30,8 @@ function handle(channel, fn, { concurrent = false } = {}) {
   });
 }
 function requireClient() {
-  if (!client) throw new Error('Importe o protocolo local com npm run setup:protocol antes de abrir o aplicativo.');
+  if (!client) throw new Error('A configuração de volumes ainda não está disponível.');
   return client;
-}
-async function printerNames() {
-  try {
-    const { stdout } = await exec('lpstat', ['-p'], { timeout: 5000, env: { ...process.env, LC_ALL: 'C' } });
-    return [...stdout.matchAll(/^printer (\S+)/gm)].map(m => m[1]);
-  } catch { return []; }
 }
 app.whenReady().then(async () => {
   const { HavanClient } = await import('./api.mjs');
@@ -50,8 +41,10 @@ app.whenReady().then(async () => {
   const { PortalClient } = await import('./portal.mjs');
   const { SupplierAccess } = await import('./access.mjs');
   const { CredentialVault } = await import('./credential-vault.mjs');
+  const { BOOTSTRAP_FILE, ProtocolVault, readProtocolFile } = await import('./protocol-bootstrap.mjs');
   const { Confirmations } = await import('./confirmations.mjs');
   const { UpdateService, parseChangelog } = await import('./updates.mjs');
+  const { listPrinters, submitRaw } = await import('./printing.mjs');
   const { exists, migrateLegacyProfile, LEGACY_PROFILE, LEGACY_VAULT_SCHEMA } = await import('./profile-migration.mjs');
   const root = app.getPath('userData');
   const appData = app.getPath('appData');
@@ -74,15 +67,13 @@ app.whenReady().then(async () => {
   const updates = new UpdateService(app.getVersion(), path.join(root, 'updates-seen'), localNotes);
   let autoAttempted = false;
   jobs = new JobStore(path.join(root, 'lotes'));
-  try {
-    let configFile = path.join(root, 'protocol.json');
-    if (!app.isPackaged) {
-      try { await fs.access(configFile); }
-      catch { configFile = path.join(app.getAppPath(), '.local/protocol.json'); }
-    }
-    const config = JSON.parse(await fs.readFile(configFile, 'utf8'));
-    client = new HavanClient(config.key);
-  } catch { /* O painel de login permite importar a configuração. */ }
+  const protocolVault = new ProtocolVault(root);
+  const legacyFiles = [path.join(root, 'protocol.json')];
+  if (!app.isPackaged) legacyFiles.push(path.join(app.getAppPath(), '.local/protocol.json'));
+  const protocol = await protocolVault.initialize({
+    legacyFiles, bootstrapFile: app.isPackaged ? path.join(process.resourcesPath, BOOTSTRAP_FILE) : null,
+  }).catch(() => ({ key: null }));
+  if (protocol.key) client = new HavanClient(protocol.key);
   const access = new SupplierAccess(client, portal, async () => {
     await portalSession.clearStorageData();
     await portalSession.clearAuthCache();
@@ -120,7 +111,8 @@ app.whenReady().then(async () => {
       'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"],
     },
   }));
-  handle('app:status', () => ({ protocol: Boolean(client), storage: path.join(root, 'lotes'),
+  handle('app:status', () => ({ protocol: Boolean(client), protocolVaultUnavailable: !client && Boolean(protocol.vaultUnavailable),
+    storage: path.join(root, 'lotes'),
     authenticated: access.authenticated }));
   handle('app:author-github', () => shell.openExternal('https://github.com/kelvinmattosdev'));
   // A consulta pública não usa nem bloqueia as operações autenticadas da Havan.
@@ -139,15 +131,10 @@ app.whenReady().then(async () => {
       filters: [{ name: 'Configuração local', extensions: ['json'] }],
     });
     if (result.canceled) return false;
-    const input = result.filePaths[0];
-    if ((await fs.stat(input)).size > 4096) throw new Error('Arquivo de configuração inválido.');
-    const config = JSON.parse(await fs.readFile(input, 'utf8'));
-    if (typeof config.key !== 'string' || config.key.length < 1 || config.key.length > 200)
-      throw new Error('Arquivo de configuração inválido.');
-    await fs.mkdir(root, { recursive: true, mode: 0o700 });
-    await fs.writeFile(path.join(root, 'protocol.json'), JSON.stringify({ key: config.key }), { mode: 0o600 });
+    const key = await readProtocolFile(result.filePaths[0]).catch(() => { throw new Error('Arquivo de configuração inválido.'); });
+    await protocolVault.save(key);
     await access.logout();
-    client = new HavanClient(config.key);
+    client = new HavanClient(key);
     access.api = client;
     return true;
   });
@@ -248,10 +235,10 @@ app.whenReady().then(async () => {
     await fs.writeFile(result.filePath, archive.buffer, { flag: 'wx', mode: 0o600 });
     return true;
   });
-  workspace('print:list', () => printerNames());
+  workspace('print:list', () => listPrinters());
   workspace('print:job', async (id, printer) => {
-    if (typeof printer !== 'string' || !/^[a-zA-Z0-9_.-]+$/.test(printer) ||
-        !(await printerNames()).includes(printer)) throw new Error('Selecione uma fila CUPS instalada.');
+    if (typeof printer !== 'string' || !(await listPrinters()).includes(printer))
+      throw new Error('Selecione uma fila de impressão instalada.');
     const { job, files } = await jobs.load(id);
     const confirmed = await confirmations.ask('print', {
       confirmLabel: 'Enviar para a impressora',
@@ -262,10 +249,9 @@ app.whenReady().then(async () => {
     const file = path.join(app.getPath('temp'), `vinqueta-${require('node:crypto').randomUUID()}.zpl`);
     try {
       await fs.writeFile(file, files.map(f => f.zpl).join('\n'), { mode: 0o600, flag: 'wx' });
-      const { stdout } = await exec('lp', ['-d', printer, '-o', 'raw', '--', file], { timeout: 15000 });
-      return stdout.trim();
+      return await submitRaw(printer, file);
     } catch {
-      throw new Error('Não foi possível confirmar o envio ao CUPS. Confira a fila antes de tentar novamente.');
+      throw new Error('Não foi possível confirmar o envio. Confira a fila antes de tentar novamente.');
     } finally { await fs.unlink(file).catch(() => {}); }
   });
   await win.loadFile(entry);

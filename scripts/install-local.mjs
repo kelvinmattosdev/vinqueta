@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { exists, LEGACY_PROFILE, LEGACY_LAUNCHER_MARKER } from '../electron/profile-migration.mjs';
+import { BOOTSTRAP_FILE } from '../electron/protocol-bootstrap.mjs';
 
 const home = homedir();
 const dataHome = process.env.XDG_DATA_HOME || join(home, '.local/share');
@@ -38,7 +39,8 @@ if (priorVersion && priorVersion !== version) {
 }
 try {
   const existing = join(configDirectory, 'protocol.json');
-  try { await access(existing); }
+  try { await access(await exists(join(destination, 'resources', BOOTSTRAP_FILE))
+    ? join(destination, 'resources', BOOTSTRAP_FILE) : existing); }
   catch (error) {
     if (error.code !== 'ENOENT') throw error;
     if (!await exists(join(configHome, LEGACY_PROFILE, 'protocol.json'))) {

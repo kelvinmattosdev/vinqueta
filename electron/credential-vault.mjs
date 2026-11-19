@@ -15,8 +15,9 @@ try {
   if (action === 'save') {
     const input = new Gio.DataInputStream({ base_stream: new Gio.UnixInputStream({ fd: 0 }) });
     const [secret] = input.read_line_utf8(null);
+    const label = schemaName.endsWith('.VolumeProtocol') ? 'Vinqueta — configuração de volumes' : 'Vinqueta — acesso de fornecedor Havan';
     if (!secret || !Secret.password_store_sync(schema, attributes, Secret.COLLECTION_DEFAULT,
-      'Vinqueta — acesso de fornecedor Havan', secret, null)) imports.system.exit(1);
+      label, secret, null)) imports.system.exit(1);
   } else if (action === 'load') {
     const secret = Secret.password_lookup_sync(schema, attributes, null);
     if (secret !== null) print(secret);
@@ -28,7 +29,18 @@ try {
 } catch (_) { imports.system.exit(1); }
 `;
 
-export function secretService(action, profile, input = '', schema = 'com.kelvinmattosdev.vinqueta.SupplierAccess') {
+export async function secretService(action, profile, input = '', schema = 'com.kelvinmattosdev.vinqueta.SupplierAccess') {
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    try {
+      const { AsyncEntry } = await import('@napi-rs/keyring');
+      const entry = new AsyncEntry(schema, profile);
+      const signal = AbortSignal.timeout(20000);
+      if (action === 'load') return await entry.getPassword(signal) ?? '';
+      if (action === 'save') return await entry.setPassword(input, signal);
+      if (action === 'clear') return await entry.deletePassword(signal);
+      throw new Error();
+    } catch { throw new Error('Cofre de senhas do sistema indisponível.'); }
+  }
   return new Promise((resolve, reject) => {
     const fail = () => reject(new Error('Cofre de senhas do sistema indisponível.'));
     if (process.platform !== 'linux') { fail(); return; }
