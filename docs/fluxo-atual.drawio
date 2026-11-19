@@ -1,0 +1,66 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="fluxo-atual" name="Fluxo atual">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="1360" pageHeight="1200" arrows="1" connect="1">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+        <mxCell id="titulo" value="Central de etiquetas · fluxo atual do usuário" style="text;html=1;fontSize=24;fontStyle=1;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="850" height="40" as="geometry"/></mxCell>
+        <mxCell id="nota" value="O app abre em Pedidos. As outras abas podem ser acessadas sem login. O pedido escolhido em uma aba não passa para a outra." style="text;html=1;whiteSpace=wrap;align=left;fontSize=14;" vertex="1" parent="1"><mxGeometry x="40" y="65" width="1180" height="30" as="geometry"/></mxCell>
+        <mxCell id="inicio" value="Abrir a Central" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="540" y="110" width="180" height="44" as="geometry"/></mxCell>
+        <mxCell id="pedidos" value="Pedidos · tela inicial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="125" y="200" width="200" height="44" as="geometry"/></mxCell>
+        <mxCell id="precos" value="Etiquetas de preço" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="530" y="200" width="200" height="44" as="geometry"/></mxCell>
+        <mxCell id="historico" value="Lotes salvos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="975" y="200" width="160" height="44" as="geometry"/></mxCell>
+        <mxCell id="config" value="Configurações" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1170" y="200" width="140" height="44" as="geometry"/></mxCell>
+        <mxCell id="login" value="Acesso de fornecedor&lt;br&gt;CNPJ e senha" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="300" width="175" height="55" as="geometry"/></mxCell>
+        <mxCell id="zpl" value="Importar ZPL ou ZIP original&lt;br&gt;(sem login)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="235" y="300" width="175" height="55" as="geometry"/></mxCell>
+        <mxCell id="buscar" value="Buscar pedidos, ver produtos e selecionar itens" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="400" width="175" height="60" as="geometry"/></mxCell>
+        <mxCell id="solicitar" value="Solicitar etiquetas de volume à Havan e aplicar o ajuste" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="510" width="175" height="60" as="geometry"/></mxCell>
+        <mxCell id="ajustar" value="Aplicar o mesmo ajuste ao arquivo importado" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="235" y="510" width="175" height="60" as="geometry"/></mxCell>
+        <mxCell id="volume" value="Lote de volume salvo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="125" y="740" width="200" height="55" as="geometry"/></mxCell>
+        <mxCell id="manual" value="Preencher manualmente ou usar um modelo" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="435" y="300" width="135" height="55" as="geometry"/></mxCell>
+        <mxCell id="local" value="Importar XML, RAR ou ZIP de integração" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="590" y="300" width="135" height="55" as="geometry"/></mxCell>
+        <mxCell id="portal" value="Buscar integração pelo portal da Havan" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="745" y="300" width="195" height="55" as="geometry"/></mxCell>
+        <mxCell id="sessao" value="Sessão do portal disponível?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="755" y="385" width="175" height="85" as="geometry"/></mxCell>
+        <mxCell id="acesso" value="Entrar pelo mesmo Acesso de fornecedor e voltar a Preços. Se necessário, verificar o site ou importar arquivo local." style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="970" y="390" width="230" height="75" as="geometry"/></mxCell>
+        <mxCell id="ler" value="Consultar portal, escolher pedido e ler integração" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="745" y="510" width="195" height="60" as="geometry"/></mxCell>
+        <mxCell id="revisar" value="Revisar dados e selecionar variações do XML" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="590" y="510" width="135" height="60" as="geometry"/></mxCell>
+        <mxCell id="adicionar" value="Adicionar ao lote, conferir EAN, preço e quantidade e gerar" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="545" y="630" width="225" height="60" as="geometry"/></mxCell>
+        <mxCell id="lotePreco" value="Lote de preço salvo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="555" y="740" width="205" height="55" as="geometry"/></mxCell>
+        <mxCell id="abrir" value="Abrir um lote existente&lt;br&gt;(sem consultar a Havan)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="960" y="300" width="190" height="55" as="geometry"/></mxCell>
+        <mxCell id="preferencias" value="Aparência e avisos de confirmação" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="1170" y="300" width="140" height="55" as="geometry"/></mxCell>
+        <mxCell id="detalhes" value="Detalhes do lote e prévia do ZPL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="485" y="855" width="345" height="55" as="geometry"/></mxCell>
+        <mxCell id="exportar" value="Exportar TXT ou ZIP" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="380" y="960" width="220" height="55" as="geometry"/></mxCell>
+        <mxCell id="imprimir" value="Buscar filas, escolher a impressora e enviar" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="715" y="960" width="220" height="55" as="geometry"/></mxCell>
+        <mxCell id="rodape" value="Download da integração, solicitação de volumes e envio à impressora têm aviso de confirmação, salvo se desativado. A conferência do lote de preços é obrigatória." style="text;html=1;whiteSpace=wrap;align=left;fontSize=13;" vertex="1" parent="1"><mxGeometry x="40" y="1070" width="1180" height="40" as="geometry"/></mxCell>
+        <mxCell id="e01" edge="1" parent="1" source="inicio" target="pedidos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e02" edge="1" parent="1" source="inicio" target="precos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e03" edge="1" parent="1" source="inicio" target="historico" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e04" edge="1" parent="1" source="inicio" target="config" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e05" edge="1" parent="1" source="pedidos" target="login" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e06" edge="1" parent="1" source="pedidos" target="zpl" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e07" edge="1" parent="1" source="login" target="buscar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e08" edge="1" parent="1" source="buscar" target="solicitar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e09" edge="1" parent="1" source="zpl" target="ajustar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="solicitar" target="volume" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="ajustar" target="volume" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="precos" target="manual" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="precos" target="local" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="precos" target="portal" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="portal" target="sessao"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e16" value="Não" edge="1" parent="1" source="sessao" target="acesso"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e17" value="Sim" edge="1" parent="1" source="sessao" target="ler"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="local" target="revisar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="ler" target="revisar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="manual" target="adicionar" style="edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=0.5;exitY=1;entryX=0;entryY=0.5;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="revisar" target="adicionar"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="adicionar" target="lotePreco"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="historico" target="abrir"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="config" target="preferencias"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="volume" target="detalhes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="lotePreco" target="detalhes"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="abrir" target="detalhes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1160" y="328"/><mxPoint x="1220" y="370"/><mxPoint x="1220" y="882"/></Array></mxGeometry></mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="detalhes" target="exportar" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="detalhes" target="imprimir" style="edgeStyle=orthogonalEdgeStyle;rounded=1;"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

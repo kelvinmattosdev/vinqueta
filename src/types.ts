@@ -1,0 +1,46 @@
+export type Order = { code: string; supplier: string; issued: string; week: string; status: string; items: number };
+export type OrderQuery = { orders: Order[]; inconclusive: boolean };
+export type Item = { index: number; code: string; name: string; variation: string; quantity: number; pack: number };
+export type PriceSource = { kind: 'integration'; order: string; version: string; sha256: string; productCode: string; variationCode: string };
+export type PriceInput = { name: string; ean: string; price: string; quantity: number; source?: PriceSource };
+export type PricePreviewOptions = { item: PriceInput; dpmm: number; canvas: 'strip' | '4x6'; row: 'first' | 'last'; consent: true };
+export type PricePreviewImage = { image: string; pixelWidth: number; pixelHeight: number; dpi: number; canvas: string; row: string };
+export type IntegrationRow = PriceInput & { id: string; productCode: string; variationCode: string; variation: string; unit: string; issue: string | null };
+export type Integration = { order: string; version: string; portalVersion?: string; standard: string; sourceName: string; archiveName: string; sha256: string; rows: IntegrationRow[]; warnings: string[]; total: number };
+export type PortalOrder = { key: string; code: string; version: string; status: string; delivery: string; invoice: string; scheduled: string; available: boolean };
+export type JobFile = { name: string; count: number; hash: string; rows?: number; blankSlots?: number; product?: string; ean?: string; price?: string; source?: PriceSource };
+export type Job = { id: string; label: string; date: string; count: number; offset: number; kind?: 'volume' | 'price'; profile?: string; rows?: number; files: JobFile[] };
+export type Identity = { name: string; document: string };
+export type Status = { protocol: boolean; storage: string; authenticated: boolean };
+export type Confirmation = { id: string; title: string; detail: string; confirmLabel: string };
+export type Changelog = { from: string; to: string; notes: { version: string; body: string }[] };
+export type UpdateStatus = { current: string; status: 'available' | 'current' | 'unavailable'; latest: string | null; changelog: Changelog | null };
+export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
+export interface Desktop {
+  openAuthorGitHub(): Promise<Result<void>>;
+  checkUpdates(): Promise<Result<UpdateStatus>>;
+  acknowledgeChangelog(version: string): Promise<Result<boolean>>;
+  openUpdate(version: string): Promise<Result<void>>;
+  status(): Promise<Result<Status>>;
+  importConfig(): Promise<Result<boolean>>;
+  resetWarnings(): Promise<Result<boolean>>;
+  onConfirmation(callback: (input: Confirmation) => void): () => void;
+  respondConfirmation(input: { id: string; confirmed: boolean; remember: boolean }): void;
+  login(data: { username: string; password: string }, remember: boolean): Promise<Result<{ identity: Identity; warning?: string }>>;
+  autoLogin(): Promise<Result<Identity | null>>;
+  logout(): Promise<Result<{ warning?: string }>>;
+  orders(filters: { code: string; year: number; week: number }): Promise<Result<OrderQuery>>;
+  items(code: string): Promise<Result<Item[]>>;
+  generate(code: string, indices: number[]): Promise<Result<Job | null>>;
+  history(): Promise<Result<Job[]>>;
+  generatePrices(items: PriceInput[]): Promise<Result<Job>>;
+  renderPricePreview(options: PricePreviewOptions): Promise<Result<PricePreviewImage>>;
+  importIntegration(): Promise<Result<Integration | null>>;
+  portalOrders(filters: { code: string }): Promise<Result<{ orders: PortalOrder[]; paginated: boolean }>>;
+  portalDownload(key: string): Promise<Result<Integration | null>>;
+  preview(id: string): Promise<Result<{ job: Job; text: string }>>;
+  exportJob(id: string): Promise<Result<boolean>>;
+  printers(): Promise<Result<string[]>>;
+  print(id: string, printer: string): Promise<Result<string | null>>;
+}
+declare global { interface Window { vinqueta?: Desktop } }
