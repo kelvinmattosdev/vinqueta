@@ -35,11 +35,20 @@ jobs:
       - run: npm run dist:${{ matrix.target }}
       - name: Abrir pacote no Windows e testar o cofre
         if: runner.os == 'Windows'
+        timeout-minutes: 4
         run: node scripts/smoke-platform-package.mjs release/win-unpacked/Vinqueta.exe
       - name: Abrir pacote no macOS e testar o cofre
         if: runner.os == 'macOS'
+        timeout-minutes: 4
         run: |
           set -eu
+          keychain="$RUNNER_TEMP/vinqueta-test.keychain-db"
+          password="$(openssl rand -hex 24)"
+          trap 'security delete-keychain "$keychain"' EXIT
+          security create-keychain -p "$password" "$keychain"
+          security default-keychain -s "$keychain"
+          security list-keychains -d user -s "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
           executable="$(find release -type f -path '*/Vinqueta.app/Contents/MacOS/Vinqueta' -print -quit)"
           test -n "$executable"
           node scripts/smoke-platform-package.mjs "$executable"
