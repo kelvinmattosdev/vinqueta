@@ -44,6 +44,7 @@ app.whenReady().then(async () => {
   const { BOOTSTRAP_FILE, ProtocolVault, readProtocolFile } = await import('./protocol-bootstrap.mjs');
   const { Confirmations } = await import('./confirmations.mjs');
   const { UpdateService, parseChangelog } = await import('./updates.mjs');
+  const { findInstallTarget, installAppImage } = await import('./update-install.mjs');
   const { listPrinters, submitRaw } = await import('./printing.mjs');
   const { exists, migrateLegacyProfile, LEGACY_PROFILE, LEGACY_VAULT_SCHEMA } = await import('./profile-migration.mjs');
   const root = app.getPath('userData');
@@ -65,6 +66,9 @@ app.whenReady().then(async () => {
   const vault = new CredentialVault(root);
   const localNotes = parseChangelog(await fs.readFile(path.join(app.getAppPath(), 'CHANGELOG.md'), 'utf8').catch(() => ''));
   const updates = new UpdateService(app.getVersion(), path.join(root, 'updates-seen'), localNotes);
+  const locateUpdateTarget = () => findInstallTarget({
+    packaged: app.isPackaged, image: process.env.APPIMAGE, executable: process.execPath,
+  });
   let autoAttempted = false;
   jobs = new JobStore(path.join(root, 'lotes'));
   const protocolVault = new ProtocolVault(root);
@@ -116,7 +120,12 @@ app.whenReady().then(async () => {
     authenticated: access.authenticated }));
   handle('app:author-github', () => shell.openExternal('https://github.com/kelvinmattosdev'));
   // A consulta pública não usa nem bloqueia as operações autenticadas da Havan.
-  handle('updates:check', () => { access.requireSession(); return updates.check(); }, { concurrent: true });
+  handle('updates:check', async () => {
+    access.requireSession();
+    const status = await updates.check();
+    const automatic = Boolean(updates.latestRelease?.appImage && await locateUpdateTarget());
+    return { ...status, automatic };
+  }, { concurrent: true });
   handle('updates:acknowledge', version => { access.requireSession(); return updates.acknowledge(version); }, { concurrent: true });
   handle('updates:open', version => {
     access.requireSession();
@@ -124,6 +133,45 @@ app.whenReady().then(async () => {
     if (!url) throw new Error('Release não disponível. Verifique as atualizações novamente.');
     return shell.openExternal(url);
   }, { concurrent: true });
+  handle('updates:install', async version => {
+    access.requireSession();
+    const release = updates.latestRelease;
+    const target = await locateUpdateTarget();
+    if (!target || !release?.appImage || release.version !== version)
+      throw new Error('A atualização automática não está disponível para esta instalação.');
+    let progressWindow, preventClose;
+    try {
+      progressWindow = new BrowserWindow({
+        width: 440, height: 215, useContentSize: true, resizable: false, maximizable: false,
+        show: false, title: 'Atualizando o Vinqueta', autoHideMenuBar: true,
+        webPreferences: {
+          preload: path.join(__dirname, 'update-window.cjs'), partition: 'vinqueta-update',
+          contextIsolation: true, sandbox: true, nodeIntegration: false,
+        },
+      });
+      preventClose = event => event.preventDefault();
+      progressWindow.on('close', preventClose);
+      progressWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      progressWindow.webContents.on('will-navigate', event => event.preventDefault());
+      await progressWindow.loadFile(path.join(__dirname, 'update-window.html'));
+      progressWindow.show();
+      win.hide();
+      const executable = await installAppImage(target, release.appImage, (phase, percent) => {
+        if (!progressWindow.isDestroyed()) progressWindow.webContents.send('update-window:progress', phase, percent);
+      });
+      app.relaunch({ execPath: executable, args: [
+        ...(target.local ? [] : ['--appimage-extract-and-run']),
+        ...(defaultProfile ? [] : [`--user-data-dir=${root}`]),
+      ] });
+      progressWindow.removeListener('close', preventClose);
+      setTimeout(() => app.quit(), 500);
+      return true;
+    } catch {
+      progressWindow?.destroy();
+      if (!win.isDestroyed()) win.show();
+      throw new Error('Não foi possível concluir a atualização. Tente novamente ou baixe a versão pelo GitHub.');
+    }
+  });
   workspace('app:reset-warnings', () => confirmations.reset());
   handle('app:import-config', async () => {
     const result = await dialog.showOpenDialog(win, {

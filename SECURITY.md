@@ -18,7 +18,7 @@ A Central é um cliente desktop independente. Não há servidor da Central receb
 
 ## Conexões externas
 
-- **GitHub — `api.github.com`:** após o login, consulta pública por versões e notas da Vinqueta. Não envia credenciais, sessão, pedidos ou dados de etiquetas. O botão de atualização abre a página da release no navegador, sem baixar ou executar instaladores automaticamente.
+- **GitHub — `api.github.com`:** após o login, consulta pública por versões e notas do Vinqueta. Não envia credenciais, sessão, pedidos ou dados de etiquetas. Nas instalações Linux compatíveis, um clique explícito baixa o AppImage do repositório oficial pelo GitHub e suas CDNs, valida o tamanho e o SHA-256 da release e só então troca o arquivo. Não eleva privilégios. Nas demais instalações, abre a release no navegador.
 
 - **Havan — `impressaofornecedordmz.apps.havan.com.br`:** autenticação, pedidos, itens e solicitação de ZPL de volume no serviço usado pelo aplicativo oficial.
 - **Havan — `cliente.havan.com.br`:** autenticação e consulta ao Portal do Fornecedor. O download usa um link retornado na consulta do próprio portal e pode marcar o pedido como **visualizado/baixado**. Solicitar novos volumes também pode produzir efeitos no serviço da Havan; essas operações não são repetidas automaticamente.

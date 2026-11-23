@@ -5,6 +5,7 @@ import { dirname } from 'node:path';
 const REPOSITORY = 'kelvinmattosdev/vinqueta';
 const API = `https://api.github.com/repos/${REPOSITORY}/releases`;
 const RELEASES = `https://github.com/${REPOSITORY}/releases`;
+export const MAX_UPDATE_BYTES = 1024 * 1024 * 1024;
 const stable = value => typeof value === 'string' && /^v?(?:0|[1-9]\d{0,7})\.(?:0|[1-9]\d{0,7})\.(?:0|[1-9]\d{0,7})$/.test(value)
   ? value.replace(/^v/, '') : null;
 export function compareVersions(a, b) {
@@ -68,7 +69,13 @@ export class UpdateService {
         const tag = entry?.tag_name;
         const version = stable(tag);
         if (!version || entry.draft !== false || entry.prerelease !== false) continue;
-        releases.push({ tag, version, body: typeof entry.body === 'string' ? entry.body.slice(0, 20000).trim() : '' });
+        const name = `vinqueta-${version}-${process.arch === 'x64' ? 'x86_64' : process.arch}.AppImage`;
+        const asset = Array.isArray(entry.assets) && entry.assets.find(item => item?.name === name &&
+          item.state === 'uploaded' && /^sha256:[a-f0-9]{64}$/.test(item.digest) &&
+          Number.isSafeInteger(item.size) && item.size >= 12 && item.size <= MAX_UPDATE_BYTES);
+        releases.push({ tag, version, body: typeof entry.body === 'string' ? entry.body.slice(0, 20000).trim() : '',
+          ...(asset ? { appImage: { size: asset.size, digest: asset.digest.slice(7),
+            url: `${RELEASES}/download/${encodeURIComponent(tag)}/${encodeURIComponent(name)}` } } : {}) });
       }
       if (list.length < 100 || !/rel="next"/.test(response.headers.get('link') || '')) return releases;
     }

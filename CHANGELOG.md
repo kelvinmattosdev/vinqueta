@@ -1,7 +1,11 @@
 # Changelog
 
-Notas de cada versão estável da Vinqueta. A aplicação também usa este arquivo
+Notas de cada versão estável do Vinqueta. A aplicação também usa este arquivo
 para exibir o histórico quando não é possível consultar o GitHub.
+
+## 1.0.1
+
+- Atualização automática no AppImage e na instalação Linux por usuário, com progresso, verificação do pacote e reabertura do aplicativo.
 
 ## 1.0.0
 
@@ -13,7 +17,7 @@ para exibir o histórico quando não é possível consultar o GitHub.
 
 ### Novidades
 
-- Verificação de novas versões no GitHub após entrar na Vinqueta.
+- Verificação de novas versões no GitHub após entrar no Vinqueta.
 - Status de atualização no topo e acesso à página da release pelo navegador.
 - Histórico das versões instaladas desde a última leitura, incluindo notas de segurança quando publicadas.
 

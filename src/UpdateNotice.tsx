@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, History, RefreshCw } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpRight, History, RefreshCw } from 'lucide-react';
 import type { Changelog, UpdateStatus } from './types';
 import { useModalDismiss } from './MotionFeedback';
 
@@ -59,7 +59,7 @@ function ChangelogDialog({ log, onClose }: { log: Changelog; onClose: () => void
     aria-labelledby="changelog-title" onCancel={event => { event.preventDefault(); void acknowledge(); }}
     onClickCapture={motion.guardInteraction} onKeyDownCapture={motion.guardInteraction}>
     <div className="modal-heading">
-      <div><span className="eyebrow">Atualização · {log.from} → {log.to}</span><h2 id="changelog-title">O que mudou na Vinqueta</h2></div>
+      <div><span className="eyebrow">Atualização · {log.from} → {log.to}</span><h2 id="changelog-title">O que mudou no Vinqueta</h2></div>
       <History size={22} aria-hidden="true" />
     </div>
     <div className="changelog-notes">
@@ -76,7 +76,8 @@ export default function UpdateNotice({ canShowChangelog }: { canShowChangelog: b
   const [update, setUpdate] = useState<UpdateStatus>();
   const [attempt, setAttempt] = useState(0);
   const [checking, setChecking] = useState(true);
-  const [openFailed, setOpenFailed] = useState(false);
+  const [failure, setFailure] = useState('');
+  const [installing, setInstalling] = useState(false);
   const [dismissed, setDismissed] = useState('');
   const [queuedLog, setQueuedLog] = useState<Changelog>();
 
@@ -85,7 +86,7 @@ export default function UpdateNotice({ canShowChangelog }: { canShowChangelog: b
     const bridge = window.vinqueta;
     if (!bridge?.checkUpdates) { setChecking(false); return; }
     setChecking(true);
-    setOpenFailed(false);
+    setFailure('');
     void bridge.checkUpdates().then(result => {
       if (!cancelled && result.ok) setUpdate(result.data);
       else if (!cancelled) setUpdate(undefined);
@@ -99,22 +100,29 @@ export default function UpdateNotice({ canShowChangelog }: { canShowChangelog: b
       setQueuedLog(update.changelog);
   }, [canShowChangelog, update, dismissed]);
 
-  async function open(version: string) {
-    setOpenFailed(false);
+  async function open(version: string, automatic = update?.automatic) {
+    const bridge = window.vinqueta;
+    if (!bridge) return;
+    setFailure('');
+    if (automatic) setInstalling(true);
     try {
-      const result = await window.vinqueta?.openUpdate(version);
-      if (!result?.ok) setOpenFailed(true);
-    } catch { setOpenFailed(true); }
+      const result = automatic ? await bridge.installUpdate(version) : await bridge.openUpdate(version);
+      if (!result.ok) throw new Error();
+    } catch {
+      setInstalling(false);
+      setFailure(automatic ? 'Não foi possível instalar a atualização.' : 'Não foi possível abrir a release.');
+    }
   }
 
   return <div className="update-notice">
     {checking ? <span className="update-status" role="status">Verificando versão…</span>
       : update?.status === 'available' && update.latest ? <button type="button" className="button update-button primary"
-        onClick={() => void open(update.latest!)}>Atualizar para {update.latest} <ArrowUpRight size={14} aria-hidden="true" /></button>
+        disabled={!canShowChangelog || installing} title={update.automatic ? 'Baixar, instalar e reabrir o Vinqueta' : 'Abrir a release para instalação manual'}
+        onClick={() => void open(update.latest!)}>Atualizar para {update.latest} {update.automatic ? <ArrowDownToLine size={14} aria-hidden="true" /> : <ArrowUpRight size={14} aria-hidden="true" />}</button>
       : update?.status === 'current' ? <span className="update-status current" role="status"><span className="small-dot" aria-hidden="true" /> Atualizado {update.current}</span>
       : <button type="button" className="button update-button secondary" onClick={() => setAttempt(n => n + 1)}
         title="Não foi possível confirmar a versão mais recente."><RefreshCw size={14} aria-hidden="true" /> Verificar atualização</button>}
-    {openFailed && <span className="update-failure" role="alert">Não foi possível abrir a release.</span>}
+    {failure && <span className="update-failure" role="alert">{failure}{update?.automatic && update.latest && <> <button type="button" className="text-button" onClick={() => void open(update.latest!, false)}>Abrir no GitHub</button></>}</span>}
     {queuedLog && <ChangelogDialog log={queuedLog} onClose={() => { setDismissed(queuedLog.to); setQueuedLog(undefined); }} />}
   </div>;
 }

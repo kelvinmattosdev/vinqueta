@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/vinqueta.svg" width="88" height="88" alt="Símbolo da Vinqueta" />
+<img src="public/vinqueta.svg" width="88" height="88" alt="Símbolo do Vinqueta" />
 
 # Vinqueta
 
@@ -22,7 +22,7 @@ Aplicativo desktop independente para fornecedores da Havan gerarem, conferirem e
 
 O projeto nasceu de uma rotina de fornecedor: as etiquetas de volume exigiam um ajuste manual no ZPL para encaixar no papel usado na operação, e as de preço dependiam de uma segunda ferramenta, embora o XML de integração já trouxesse os dados necessários. Era fácil perder tempo alternando entre programas ou precisar gerar de novo algo que já estava pronto.
 
-A Vinqueta reúne essas tarefas. Ajusta a posição das etiquetas de volume sem alterar seus identificadores, prepara etiquetas de preço diretamente a partir do XML e mantém os lotes no computador para exportar ou imprimir novamente, sem solicitar novos códigos à Havan.
+O Vinqueta reúne essas tarefas. Ajusta a posição das etiquetas de volume sem alterar seus identificadores, prepara etiquetas de preço diretamente a partir do XML e mantém os lotes no computador para exportar ou imprimir novamente, sem solicitar novos códigos à Havan.
 
 ## Fluxo de uso
 
@@ -36,7 +36,7 @@ Em **Configurações**, escolha tema claro, escuro ou do sistema e restaure os a
 ### Atualizações
 
 Depois do login, o topo consulta as releases estáveis de [`kelvinmattosdev/vinqueta`](https://github.com/kelvinmattosdev/vinqueta/releases).
-**Atualizar para…** abre a release no navegador; a instalação é manual. Se não for possível verificar, a Vinqueta não afirma que está atualizada.
+No AppImage gravável e na instalação local por usuário no Linux, **Atualizar para…** baixa a imagem oficial, mostra o progresso, verifica o SHA-256 anunciado pelo GitHub e reabre o Vinqueta. O perfil local é preservado. Em instalações `.deb` ou sem pacote compatível, o botão abre a release no navegador para instalação manual. Se não for possível verificar, o Vinqueta não afirma que está atualizado.
 Ao abrir uma versão nova, o histórico reúne as notas das versões intermediárias conhecidas, incluindo correções de segurança quando publicadas.
 O modal volta apenas após outra atualização quando a leitura é confirmada. Em uma instalação sem histórico anterior, a versão em uso é o ponto de partida.
 
@@ -62,7 +62,7 @@ npm run dist:mac        # no macOS; gera .dmg para a arquitetura do host
 
 O build do ícone usa Chrome (`CHROME_PATH` aponta para outro executável compatível). A versão empacotada não exige Node.js nem terminal para abrir. A operação online exige uma conta de fornecedor habilitada.
 
-Por padrão, builds a partir do código-fonte não trazem a configuração de volumes. Use **Importar configuração local** no painel de acesso para guardá-la no cofre do sistema. Em instalações existentes, a Vinqueta tenta migrar o `protocol.json` local para o cofre sem apagar o original.
+Por padrão, builds a partir do código-fonte não trazem a configuração de volumes. Use **Importar configuração local** no painel de acesso para guardá-la no cofre do sistema. Em instalações existentes, o Vinqueta tenta migrar o `protocol.json` local para o cofre sem apagar o original.
 
 Para preparar um pacote de distribuição com configuração inicial, forneça ao empacotador o **caminho** de um arquivo privado, fora do repositório:
 

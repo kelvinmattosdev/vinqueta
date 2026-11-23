@@ -217,7 +217,7 @@ export default function App() {
       <div className="privacy-note"><ShieldCheck size={16} /><span>Se marcar a opção, o CNPJ e a senha ficam no cofre do sistema. Não use em computador compartilhado.</span></div>
       {!bridge && <div className="desktop-note">Abra o aplicativo instalado para conectar sua conta.</div>}
       {bridge && status && !status.protocol && <div className="desktop-note">{status.protocolVaultUnavailable
-        ? 'Desbloqueie o cofre do sistema e reabra a Vinqueta para preparar a integração de volumes.'
+        ? 'Desbloqueie o cofre do sistema e reabra o Vinqueta para preparar a integração de volumes.'
         : 'Importe o arquivo local de compatibilidade para habilitar o login.'}<button className="text-button" disabled={!!busy} onClick={() => act('Importando configuração', async () => {
         if (await unwrap(bridge.importConfig())) setStatus(await unwrap(bridge.status()));
       })}>Importar configuração local</button></div>}

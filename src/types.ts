@@ -14,13 +14,14 @@ export type Identity = { name: string; document: string };
 export type Status = { protocol: boolean; protocolVaultUnavailable?: boolean; storage: string; authenticated: boolean };
 export type Confirmation = { id: string; title: string; detail: string; confirmLabel: string };
 export type Changelog = { from: string; to: string; notes: { version: string; body: string }[] };
-export type UpdateStatus = { current: string; status: 'available' | 'current' | 'unavailable'; latest: string | null; changelog: Changelog | null };
+export type UpdateStatus = { current: string; status: 'available' | 'current' | 'unavailable'; latest: string | null; changelog: Changelog | null; automatic?: boolean };
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 export interface Desktop {
   openAuthorGitHub(): Promise<Result<void>>;
   checkUpdates(): Promise<Result<UpdateStatus>>;
   acknowledgeChangelog(version: string): Promise<Result<boolean>>;
   openUpdate(version: string): Promise<Result<void>>;
+  installUpdate(version: string): Promise<Result<boolean>>;
   status(): Promise<Result<Status>>;
   importConfig(): Promise<Result<boolean>>;
   resetWarnings(): Promise<Result<boolean>>;

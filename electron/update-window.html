@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Atualizando o Vinqueta</title>
+<style>
+  :root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+  body { margin: 0; padding: 28px 32px; background: light-dark(#f6f8f6,#1b2420); color: light-dark(#17251d,#edf4ef); }
+  h1 { font-size: 21px; margin: 4px 0 10px; }
+  p { margin: 0 0 20px; }
+  label { display: flex; justify-content: space-between; gap: 12px; }
+  progress { width: 100%; height: 12px; margin-top: 8px; accent-color: light-dark(#236447,#98fbca); }
+</style>
+<main>
+  <h1>Atualizando o Vinqueta</h1>
+  <p>A nova versão vai abrir automaticamente.</p>
+  <label for="progress"><span id="phase" role="status">Preparando download…</span><span id="percent" aria-hidden="true">0%</span></label>
+  <progress id="progress" max="100" value="0"></progress>
+</main>

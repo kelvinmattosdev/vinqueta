@@ -1,6 +1,6 @@
 {
   "name": "vinqueta",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Central de etiquetas de preço e volume para fornecedores",
   "author": {
@@ -77,8 +77,18 @@
     },
     "deb": {
       "depends": [
-        "libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils",
-        "libatspi2.0-0", "libuuid1", "libsecret-1-0", "gjs", "gir1.2-secret-1", "cups-client"
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0",
+        "gjs",
+        "gir1.2-secret-1",
+        "cups-client"
       ],
       "fpm": [
         "README.md=/usr/share/doc/vinqueta/README.md",

@@ -2,6 +2,7 @@ import { _electron as electron } from 'playwright-core';
 import { mkdtemp, writeFile, readFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { sample } from '../tests/fixture.mjs';
 import { integrationBytes, gridHtml } from '../tests/integration-fixture.mjs';
 
@@ -374,7 +375,7 @@ try {
   assert.equal(await remember.isChecked(), false);
   await remember.check();
   await login(restarted);
-  const log = restarted.getByRole('dialog', { name: 'O que mudou na Vinqueta' });
+  const log = restarted.getByRole('dialog', { name: 'O que mudou no Vinqueta' });
   await log.waitFor();
   await log.getByRole('heading', { name: 'Versão 0.5.0', exact: true }).waitFor();
   await log.getByRole('heading', { name: `Versão ${version}`, exact: true }).waitFor();
@@ -418,6 +419,61 @@ try {
   await restarted.getByRole('button', { name: 'Sair da conta', exact: true }).click();
   await restarted.getByRole('heading', { name: 'Acesso de fornecedor', exact: true }).waitFor();
   await assert.rejects(readFile(join(tmp, 'profile', 'acesso-salvo')), { code: 'ENOENT' });
+  if (process.env.VINQUETA_EXECUTABLE) {
+    const image = join(tmp, 'Vin queta.AppImage');
+    const oldImage = Buffer.from('7f454c460201010041490200', 'hex');
+    const candidate = Buffer.concat([oldImage, Buffer.from('pacote de teste sem código executável')]);
+    const asset = {
+      url: 'https://github.com/kelvinmattosdev/vinqueta/releases/download/v1.5.0/vinqueta-1.5.0-x86_64.AppImage',
+      size: candidate.length, digest: createHash('sha256').update(candidate).digest('hex'),
+    };
+    await writeFile(image, oldImage);
+    await desktop.evaluate(({ app }, { image, asset, bytes }) => {
+      process.env.APPIMAGE = image;
+      globalThis.testReleases = [{ version: '1.5.0', tag: 'v1.5.0', body: '', appImage: asset }];
+      const fetch = globalThis.fetch;
+      globalThis.fetch = async (url, options) => {
+        if (String(url) !== asset.url) return fetch(url, options);
+        const data = Buffer.from(bytes, 'base64');
+        if (globalThis.testCorruptUpdate) { data[data.length - 1] ^= 1; return new Response(data); }
+        return new Response(new ReadableStream({
+          start(controller) {
+            controller.enqueue(data.subarray(0, 12));
+            globalThis.testFinishUpdate = () => { controller.enqueue(data.subarray(12)); controller.close(); };
+          },
+        }));
+      };
+      app.relaunch = options => { globalThis.testRelaunch = options; };
+      const quit = app.quit;
+      let scheduled;
+      globalThis.testQuitScheduled = new Promise(resolve => { scheduled = resolve; });
+      app.quit = () => {
+        app.quit = quit;
+        scheduled(true);
+      };
+    }, { image, asset, bytes: candidate.toString('base64') });
+    await login(restarted);
+    const update = restarted.getByRole('button', { name: 'Atualizar para 1.5.0' });
+    await update.waitFor();
+    assert.equal(await update.getAttribute('title'), 'Baixar, instalar e reabrir o Vinqueta');
+    await desktop.evaluate(() => { globalThis.testCorruptUpdate = true; });
+    await update.click();
+    await restarted.getByRole('alert').getByText('Não foi possível instalar a atualização.').waitFor();
+    assert.deepEqual(await readFile(image), oldImage);
+    await desktop.evaluate(() => { globalThis.testCorruptUpdate = false; });
+    const progress = desktop.waitForEvent('window');
+    await update.click();
+    const panel = await progress;
+    await panel.getByText('Baixando a nova versão…').waitFor();
+    assert.equal(await panel.locator('#percent').textContent(), `${Math.floor(12 * 100 / candidate.length)}%`);
+    assert.equal(await desktop.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().filter(w => w.isVisible()).length), 1);
+    await desktop.evaluate(() => globalThis.testFinishUpdate());
+    await panel.getByText('100%', { exact: true }).waitFor();
+    assert.deepEqual(await readFile(image), candidate);
+    const relaunch = await desktop.evaluate(() => globalThis.testRelaunch);
+    assert.deepEqual(relaunch, { execPath: image, args: ['--appimage-extract-and-run', `--user-data-dir=${join(tmp, 'profile')}`] });
+    assert.equal(await desktop.evaluate(() => globalThis.testQuitScheduled), true);
+  }
   console.log('PASS Electron: login, entrada automática, esquecimento no logout, volumes/preços, histórico e preferências. Sem chamadas à Havan.');
 } finally {
   await desktop?.close();

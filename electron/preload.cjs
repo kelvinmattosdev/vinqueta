@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('vinqueta', Object.freeze({
   checkUpdates: call('updates:check'),
   acknowledgeChangelog: call('updates:acknowledge'),
   openUpdate: call('updates:open'),
+  installUpdate: call('updates:install'),
   status: call('app:status'), login: call('api:login'), logout: call('api:logout'),
   autoLogin: call('api:auto-login'),
   importConfig: call('app:import-config'),
